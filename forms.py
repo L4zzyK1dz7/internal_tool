@@ -17,3 +17,8 @@ class ToolForm(FlaskForm):
     category_id = SelectField("Category", coerce=int, validators=[DataRequired()])
     language_id = SelectField("Language", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Save Tool")
+
+
+class SearchForm(FlaskForm):
+    q = StringField("Search", validators=[Optional(), Length(max=120)])
+    submit = SubmitField("Search")

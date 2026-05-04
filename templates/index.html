@@ -4,5 +4,35 @@
 
 {% block content %}
   <h1>Internal Tool Directory</h1>
-  <p>Secure access to internal tooling starts here.</p>
+  <p>Browse active internal tools and search by tool name or category.</p>
+
+  <form method="get" action="{{ url_for('main.index') }}">
+    <div>
+      {{ form.q.label }}
+      {{ form.q(value=search_term) }}
+      {{ form.submit() }}
+    </div>
+  </form>
+
+  {% if tools %}
+    <ul>
+      {% for tool in tools %}
+        <li>
+          <h2><a href="{{ url_for('main.tool_detail', tool_id=tool.id) }}">{{ tool.name }}</a></h2>
+          <p>{{ tool.description }}</p>
+          <p>Category: {{ tool.category.name }}</p>
+          <p>Language: {{ tool.language.name }}</p>
+          <p>Created by: {{ tool.creator.username }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No matching tools found.</p>
+  {% endif %}
+
+  {% if has_next_page %}
+    <p>
+      <a href="{{ url_for('main.index', q=search_term, page=page + 1) }}">Load More</a>
+    </p>
+  {% endif %}
 {% endblock %}

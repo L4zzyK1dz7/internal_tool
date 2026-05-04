@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool.name }} | Internal Tool Directory{% endblock %}
+
+{% block content %}
+  <h1>{{ tool.name }}</h1>
+  <p>{{ tool.description }}</p>
+  <p>Category: {{ tool.category.name }}</p>
+  <p>Language: {{ tool.language.name }}</p>
+  <p>Created by: {{ tool.creator.username }}</p>
+  <p>Team: {{ tool.creator.team.name }}</p>
+  <p><a href="{{ tool.data_link }}">Open data source</a></p>
+  <p><a href="{{ url_for('main.index') }}">Back to directory</a></p>
+{% endblock %}
