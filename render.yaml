@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: internal-tool-directory
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python seed.py
+    startCommand: python -m flask --app app run --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false

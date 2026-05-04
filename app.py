@@ -1,3 +1,16 @@
+"""app.py — Flask application factory.
+
+This module is the entry point for the Internal Tool Directory application.
+It uses the application-factory pattern so that the app can be instantiated
+with different configurations (e.g. testing vs production) without importing
+a module-level singleton.
+
+Environment variables:
+    SECRET_KEY:    Flask session secret.  Defaults to ``"dev"`` locally.
+    DATABASE_URL:  Full database connection URI.  When absent the app falls
+                   back to a local SQLite file at ``instance/app.db``.
+"""
+
 import os
 from pathlib import Path
 
@@ -10,6 +23,20 @@ from routes.main import main_bp
 
 
 def _normalise_database_url(database_url: str | None) -> str | None:
+    """Normalise a Heroku/Render-style ``postgres://`` URI to ``postgresql://``.
+
+    SQLAlchemy 2.0 dropped support for the legacy ``postgres://`` scheme.
+    Render and some other cloud providers still emit the old scheme, so this
+    helper performs the substitution transparently before the URI reaches
+    SQLAlchemy.
+
+    Args:
+        database_url: The raw ``DATABASE_URL`` string from the environment,
+            or ``None`` if the variable is not set.
+
+    Returns:
+        The corrected URI string, or ``None`` if the input was ``None``.
+    """
     if not database_url:
         return None
     if database_url.startswith("postgres://"):
@@ -18,6 +45,23 @@ def _normalise_database_url(database_url: str | None) -> str | None:
 
 
 def create_app(test_config: dict | None = None) -> Flask:
+    """Construct and configure the Flask application instance.
+
+    Registers all SQLAlchemy models, Flask-Login, and the three route
+    blueprints (main, auth, admin).  Also registers a ``/health`` endpoint
+    and a custom 403 error handler that renders the explicit security-alert
+    template required for OWASP video evidence.
+
+    Args:
+        test_config: An optional dictionary of configuration overrides.
+            When provided (e.g. from ``conftest.py``), these values are
+            merged on top of the default configuration, allowing tests to
+            inject an in-memory SQLite URI or disable CSRF.
+
+    Returns:
+        A fully configured :class:`flask.Flask` instance ready to serve
+        requests.
+    """
     flask_app = Flask(__name__, instance_relative_config=True)
 
     instance_path = Path(flask_app.instance_path)
@@ -43,10 +87,30 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @flask_app.get("/health")
     def healthcheck() -> tuple[dict[str, str], int]:
+        """Return a simple JSON liveness probe used by the hosting platform.
+
+        Returns:
+            A ``200 OK`` response with ``{"status": "ok"}`` confirming the
+            app process is running.
+        """
         return {"status": "ok"}, 200
 
     @flask_app.errorhandler(403)
     def forbidden(error):
+        """Render the explicit security-alert view for 403 Forbidden errors.
+
+        Uses the ``errors/403.html`` template which displays a prominent
+        "Security Alert: Broken Access Control" message.  This satisfies the
+        OWASP video-evidence requirement for clearly visible access-control
+        blocks.
+
+        Args:
+            error: The :class:`werkzeug.exceptions.Forbidden` exception
+                instance raised by ``abort(403)``.
+
+        Returns:
+            A rendered 403 response with the security-alert template.
+        """
         return render_template(
             "errors/403.html",
             message=getattr(error, "description", "Admin access required"),

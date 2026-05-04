@@ -1,3 +1,24 @@
+"""seed.py — Database bootstrap and synthetic data generator.
+
+This module is responsible for initialising the application database with a
+clean, reproducible state.  It is executed during local development and as
+part of the CI/CD build phase on Render, where it runs against the live
+Neon PostgreSQL instance.
+
+Responsibilities:
+    - Drop and recreate all SQLAlchemy-managed tables.
+    - Insert reference data (Teams, Languages, Categories).
+    - Create two default users: one admin and one standard user.
+    - Populate 50 synthetic Tool records for development and testing.
+
+Usage::
+
+    python seed.py
+
+The module also exposes ``seed_database()`` so that the pytest suite can
+invoke it programmatically against an isolated in-memory test database.
+"""
+
 from __future__ import annotations
 
 from itertools import cycle
@@ -49,6 +70,17 @@ DEFAULT_USERS = [
 
 
 def _create_reference_data() -> tuple[list[Team], list[Language], list[Category]]:
+    """Create and flush all normalised reference-data records.
+
+    Builds ``Team``, ``Language``, and ``Category`` ORM objects from the
+    module-level name lists, adds them to the current session, and flushes
+    so that their primary keys are available before any foreign-key
+    references are made.
+
+    Returns:
+        A three-tuple of ``(teams, languages, categories)`` — the
+        newly created lists in insertion order.
+    """
     teams = [Team(name=name) for name in TEAM_NAMES]
     languages = [Language(name=name) for name in LANGUAGE_NAMES]
     categories = [Category(name=name) for name in CATEGORY_NAMES]
@@ -59,6 +91,20 @@ def _create_reference_data() -> tuple[list[Team], list[Language], list[Category]
 
 
 def _create_users(teams: list[Team]) -> list[User]:
+    """Create the default application users and hash their passwords.
+
+    Iterates over ``DEFAULT_USERS``, resolves each user's team from the
+    supplied list, sets a bcrypt-hashed password via ``User.set_password``,
+    and flushes the session so that generated IDs are available for
+    downstream tool creation.
+
+    Args:
+        teams: The persisted ``Team`` records returned by
+            ``_create_reference_data``.
+
+    Returns:
+        The list of newly created ``User`` objects in definition order.
+    """
     teams_by_name = {team.name: team for team in teams}
     users = []
     for user_data in DEFAULT_USERS:
@@ -77,6 +123,21 @@ def _create_users(teams: list[Team]) -> list[User]:
 
 
 def _create_tools(users: list[User], categories: list[Category], languages: list[Language]) -> list[Tool]:
+    """Generate 50 synthetic Tool records distributed across reference data.
+
+    Uses ``itertools.cycle`` to evenly distribute creators, categories, and
+    languages across all 50 tools so that every combination appears in the
+    seed dataset.  Each tool gets a deterministic name, description, and
+    data link, making the output predictable for test assertions.
+
+    Args:
+        users:      Persisted ``User`` records to assign as tool creators.
+        categories: Persisted ``Category`` records to assign to tools.
+        languages:  Persisted ``Language`` records to assign to tools.
+
+    Returns:
+        The list of 50 newly created ``Tool`` objects (not yet committed).
+    """
     user_iterator = cycle(users)
     category_iterator = cycle(categories)
     language_iterator = cycle(languages)
@@ -107,6 +168,33 @@ def _create_tools(users: list[User], categories: list[Category], languages: list
 
 
 def seed_database(app=None) -> dict[str, int]:
+    """Orchestrate a full destructive reseed of the database.
+
+    Drops all existing tables and recreates them from the current
+    SQLAlchemy model definitions, then delegates to the private helpers
+    to insert reference data, users, and tools in a single transaction.
+
+    This function is intentionally destructive — it is designed for use
+    during CI/CD build phases and local development resets where a clean,
+    known state is required.
+
+    Args:
+        app: An optional Flask application instance.  When ``None``, a
+            new instance is created via ``create_app()``.  Pass an
+            existing test-app instance from ``conftest.py`` to avoid
+            creating a second app during testing.
+
+    Returns:
+        A summary dictionary with row counts for each seeded table::
+
+            {
+                "teams": 5,
+                "languages": 5,
+                "categories": 5,
+                "users": 2,
+                "tools": 50,
+            }
+    """
     application = app or create_app()
 
     with application.app_context():
