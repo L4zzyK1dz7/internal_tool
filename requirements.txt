@@ -1,0 +1,22 @@
+# --- Core Framework & Routing ---
+Flask>=3.0.0
+Werkzeug>=3.0.0
+
+# --- Database & ORM (CRITICAL PINS) ---
+SQLAlchemy>=2.0.0
+Flask-SQLAlchemy>=3.1.0
+
+# --- Forms & Validation ---
+Flask-WTF>=1.2.0
+WTForms>=3.1.0
+
+# --- Authentication & Security ---
+Flask-Login>=0.6.3
+
+# --- Database Drivers ---
+# (PostgreSQL adapter for CI/CD; SQLite is built into Python)
+psycopg2-binary>=2.9.9 
+
+# --- Testing & Development ---
+pytest>=8.0.0
+pytest-flask>=1.3.0
