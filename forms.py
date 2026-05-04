@@ -53,5 +53,12 @@ class SearchForm(FlaskForm):
     listing.
     """
 
+    # Remove CSRF validation because the form is submitted via GET request so token is not included
+    # This is not a security risk because the form does not perform any state-changing operations
+    # and the results are bookmarkable
+    class Meta:
+        csrf = False
+
     q = StringField("Search", validators=[Optional(), Length(max=120)])
     submit = SubmitField("Search")
+
