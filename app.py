@@ -23,7 +23,7 @@ from routes.main import main_bp
 
 
 def _normalise_database_url(database_url: str | None) -> str | None:
-    """Normalise a Heroku/Render-style ``postgres://`` URI to ``postgresql://``.
+    """Normalise a Render-style ``postgres://`` URI to ``postgresql://``.
 
     SQLAlchemy 2.0 dropped support for the legacy ``postgres://`` scheme.
     Render and some other cloud providers still emit the old scheme, so this
