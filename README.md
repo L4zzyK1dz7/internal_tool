@@ -12,23 +12,11 @@ This project is built around a strict engineering workflow:
 - **TDD slices:** incremental delivery with `pytest` coverage per vertical slice
 - **Environment portability:** SQLite for local development, PostgreSQL-ready via `DATABASE_URL`
 
-## Current Scope (Implemented)
+## Links
+* Link to webapp (hosted using render.com): https://internal-tool-xznr.onrender.com/
+* github repo: https://github.com/L4zzyK1dz7/internal_tool
+* Neon Postgres database: https://console.neon.tech/app/projects/solitary-frog-12354498
 
-### Slice 1 — Foundation
-- Flask app factory with instance-based SQLite default
-- SQLAlchemy models for `User`, `Tool`, `Team`, `Category`, and `Language`
-- Seed script creating reference data, 2 users, and 50 synthetic tools
-
-### Slice 2 — Authentication & Access Control
-- Local authentication via `Flask-Login`
-- Password hashing via `werkzeug.security`
-- Custom `@admin_required` decorator for RBAC enforcement
-- Explicit `403` security view for blocked admin access
-
-### Slice 3 — Admin CRUD (Soft Delete)
-- Protected admin dashboard at `/admin`
-- Add/edit tool forms with WTForms validation
-- Soft delete implemented with `Tool.is_active = False`
 
 ## Security & Architecture Constraints
 
