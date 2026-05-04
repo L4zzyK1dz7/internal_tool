@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 5000
 
-CMD ["python", "-m", "flask", "run"]
+CMD sh -c "python seed.py && python -m flask run"

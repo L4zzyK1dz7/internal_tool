@@ -25,7 +25,7 @@ from itertools import cycle
 
 from sqlalchemy import select
 
-from app import create_app
+from tests.app import create_app
 from models import Category, Language, Team, Tool, User, db
 
 
