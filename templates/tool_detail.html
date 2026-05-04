@@ -3,12 +3,29 @@
 {% block title %}{{ tool.name }} | Internal Tool Directory{% endblock %}
 
 {% block content %}
-  <h1>{{ tool.name }}</h1>
-  <p>{{ tool.description }}</p>
-  <p>Category: {{ tool.category.name }}</p>
-  <p>Language: {{ tool.language.name }}</p>
-  <p>Created by: {{ tool.creator.username }}</p>
-  <p>Team: {{ tool.creator.team.name }}</p>
-  <p><a href="{{ tool.data_link }}">Open data source</a></p>
-  <p><a href="{{ url_for('main.index') }}">Back to directory</a></p>
+  <div class="page-heading">
+    <h1>{{ tool.name }}</h1>
+  </div>
+
+  <div class="card">
+    <p class="desc" style="font-size:1rem; margin-bottom:1.2rem;">{{ tool.description }}</p>
+
+    <table style="margin-bottom:1.2rem;">
+      <tr><th>Category</th><td><span class="badge">{{ tool.category.name }}</span></td></tr>
+      <tr><th>Language</th><td><span class="badge badge-green">{{ tool.language.name }}</span></td></tr>
+      <tr><th>Created by</th><td>{{ tool.creator.username }}</td></tr>
+      <tr><th>Team</th><td>{{ tool.creator.team.name }}</td></tr>
+      <tr><th>Added</th><td>{{ tool.created_at.strftime('%d %b %Y') }}</td></tr>
+    </table>
+
+    <div class="actions">
+      {% if tool.data_link %}
+        <a href="{{ tool.data_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Open data source ↗</a>
+      {% endif %}
+      <a href="{{ url_for('main.index') }}" class="btn btn-secondary">← Back to directory</a>
+      {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="{{ url_for('admin.edit_tool', tool_id=tool.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+      {% endif %}
+    </div>
+  </div>
 {% endblock %}

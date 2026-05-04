@@ -3,44 +3,50 @@
 {% block title %}{{ heading }} | Internal Tool Directory{% endblock %}
 
 {% block content %}
-  <h1>{{ heading }}</h1>
-  <form method="post">
-    {{ form.hidden_tag() }}
-    <div>
-      {{ form.name.label }}
-      {{ form.name() }}
-      {% for error in form.name.errors %}
-        <div>{{ error }}</div>
-      {% endfor %}
-    </div>
-    <div>
-      {{ form.description.label }}
-      {{ form.description() }}
-      {% for error in form.description.errors %}
-        <div>{{ error }}</div>
-      {% endfor %}
-    </div>
-    <div>
-      {{ form.data_link.label }}
-      {{ form.data_link() }}
-      {% for error in form.data_link.errors %}
-        <div>{{ error }}</div>
-      {% endfor %}
-    </div>
-    <div>
-      {{ form.creator_id.label }}
-      {{ form.creator_id() }}
-    </div>
-    <div>
-      {{ form.category_id.label }}
-      {{ form.category_id() }}
-    </div>
-    <div>
-      {{ form.language_id.label }}
-      {{ form.language_id() }}
-    </div>
-    <div>
-      {{ form.submit() }}
-    </div>
-  </form>
+  <div class="page-heading">
+    <h1>{{ heading }}</h1>
+  </div>
+
+  <div class="form-card" style="max-width:640px;">
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <div class="form-group">
+        {{ form.name.label }}
+        {{ form.name(placeholder="e.g. Revenue Forecaster") }}
+        {% for error in form.name.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-group">
+        {{ form.description.label }}
+        {{ form.description(placeholder="Describe what this tool does and who it is for.") }}
+        {% for error in form.description.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-group">
+        {{ form.data_link.label }}
+        {{ form.data_link(placeholder="https://internal.example.com/…") }}
+        {% for error in form.data_link.errors %}
+          <div class="form-error">{{ error }}</div>
+        {% endfor %}
+      </div>
+      <div class="form-group">
+        {{ form.creator_id.label }}
+        {{ form.creator_id() }}
+      </div>
+      <div class="form-group">
+        {{ form.category_id.label }}
+        {{ form.category_id() }}
+      </div>
+      <div class="form-group">
+        {{ form.language_id.label }}
+        {{ form.language_id() }}
+      </div>
+      <div class="actions" style="margin-top:1.4rem;">
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
 {% endblock %}

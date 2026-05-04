@@ -116,6 +116,11 @@ def create_app(test_config: dict | None = None) -> Flask:
             message=getattr(error, "description", "Admin access required"),
         ), 403
 
+    @flask_app.errorhandler(404)
+    def not_found(error):
+        """Render a friendly 404 page."""
+        return render_template("errors/404.html"), 404
+
     return flask_app
 
 

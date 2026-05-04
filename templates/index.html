@@ -3,36 +3,45 @@
 {% block title %}Home | Internal Tool Directory{% endblock %}
 
 {% block content %}
-  <h1>Internal Tool Directory</h1>
-  <p>Browse active internal tools and search by tool name or category.</p>
+  <div class="page-heading">
+    <h1>Internal Tool Directory</h1>
+    <p>Browse active internal tools and search by tool name or category.</p>
+  </div>
 
   <form method="get" action="{{ url_for('main.index') }}">
-    <div>
-      {{ form.q.label }}
-      {{ form.q(value=search_term) }}
-      {{ form.submit() }}
+    <div class="search-bar">
+      {{ form.q(placeholder="Search by tool name or category…", value=search_term, id="search-input") }}
+      {{ form.submit(class="btn btn-primary") }}
+      {% if search_term %}
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Clear</a>
+      {% endif %}
     </div>
   </form>
 
   {% if tools %}
-    <ul>
-      {% for tool in tools %}
-        <li>
-          <h2><a href="{{ url_for('main.tool_detail', tool_id=tool.id) }}">{{ tool.name }}</a></h2>
-          <p>{{ tool.description }}</p>
-          <p>Category: {{ tool.category.name }}</p>
-          <p>Language: {{ tool.language.name }}</p>
-          <p>Created by: {{ tool.creator.username }}</p>
-        </li>
-      {% endfor %}
-    </ul>
+    {% for tool in tools %}
+      <div class="card">
+        <h2><a href="{{ url_for('main.tool_detail', tool_id=tool.id) }}">{{ tool.name }}</a></h2>
+        <p class="desc">{{ tool.description }}</p>
+        <div class="meta">
+          <span><span class="badge">{{ tool.category.name }}</span></span>
+          <span><span class="badge badge-green">{{ tool.language.name }}</span></span>
+          <span><span class="badge badge-gray">{{ tool.creator.username }}</span></span>
+        </div>
+        <div class="actions" style="margin-top:.8rem;">
+          <a href="{{ url_for('main.tool_detail', tool_id=tool.id) }}" class="btn btn-secondary btn-sm">View details →</a>
+        </div>
+      </div>
+    {% endfor %}
   {% else %}
-    <p>No matching tools found.</p>
+    <div class="card">
+      <p>No matching tools found.</p>
+    </div>
   {% endif %}
 
   {% if has_next_page %}
-    <p>
-      <a href="{{ url_for('main.index', q=search_term, page=page + 1) }}">Load More</a>
-    </p>
+    <div class="load-more">
+      <a href="{{ url_for('main.index', q=search_term, page=page + 1) }}" class="btn btn-secondary">Load More</a>
+    </div>
   {% endif %}
 {% endblock %}

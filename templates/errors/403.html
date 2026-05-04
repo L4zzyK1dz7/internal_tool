@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Forbidden | Internal Tool Directory{% endblock %}
+{% block title %}403 Forbidden | Internal Tool Directory{% endblock %}
 
 {% block content %}
-  <h1>Security Alert: Broken Access Control</h1>
-  <p>{{ message }}</p>
-  <p>Admin access required.</p>
+  <div class="security-alert">
+    <h1>&#128274; Security Alert: Broken Access Control</h1>
+    <p><strong>{{ message }}</strong></p>
+    <p>This access attempt has been logged.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary" style="margin-top:1rem;">← Return home</a>
+  </div>
 {% endblock %}
