@@ -32,6 +32,22 @@ def test_create_app_uses_database_url_when_present(monkeypatch):
 
 
 
+def test_create_app_bootstraps_missing_schema(tmp_path):
+    database_path = tmp_path / "bootstrap.db"
+    app = create_app(
+        {
+            "TESTING": True,
+            "AUTO_CREATE_SCHEMA": True,
+            "SQLALCHEMY_DATABASE_URI": f"sqlite:///{database_path.as_posix()}",
+        }
+    )
+
+    with app.app_context():
+        inspector = inspect(db.engine)
+
+    assert EXPECTED_TABLES.issubset(set(inspector.get_table_names()))
+
+
 def test_models_create_expected_tables(app):
     with app.app_context():
         inspector = inspect(db.engine)

@@ -198,8 +198,11 @@ def seed_database(app=None) -> dict[str, int]:
     application = app or create_app()
 
     with application.app_context():
-        db.drop_all()
-        db.create_all()
+        print(f"Seeding database at: {application.config['SQLALCHEMY_DATABASE_URI']}")
+        
+        # --- Destructive reset: drop all tables and recreate from models. ---
+        db.drop_all() 
+        db.create_all() # This will create all tables based on the current SQLAlchemy models.
 
         teams, languages, categories = _create_reference_data()
         users = _create_users(teams)

@@ -35,9 +35,8 @@ def test_login_and_logout_update_navbar(client, app):
         _create_user("analyst", USER_PASSWORD)
 
     anonymous_home = client.get("/")
-    assert anonymous_home.status_code == 200
-    assert b"Log In" in anonymous_home.data
-    assert b"Log Out" not in anonymous_home.data
+    assert anonymous_home.status_code == 302
+    assert "/login" in anonymous_home.headers["Location"]
 
     login_response = client.post(
         "/login",

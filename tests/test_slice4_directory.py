@@ -35,6 +35,14 @@ def _create_user(username: str) -> User:
     return user
 
 
+def _login(client, username: str):
+    return client.post(
+        "/login",
+        data={"username": username, "password": USER_PASSWORD},
+        follow_redirects=True,
+    )
+
+
 def _create_tool(name: str, creator: User, category_name: str = "Analytics", is_active: bool = True) -> Tool:
     _, category, language = _get_or_create_reference_data(category_name)
     tool = Tool(
@@ -58,6 +66,9 @@ def test_directory_home_limits_results_to_20_and_excludes_archived(client, app):
             _create_tool(f"Directory Tool {index:02d}", creator)
         _create_tool("Archived Tool", creator, is_active=False)
 
+    login_response = _login(client, "directory-user")
+    assert login_response.status_code == 200
+
     response = client.get("/")
 
     assert response.status_code == 200
@@ -73,6 +84,9 @@ def test_directory_search_filters_by_name_and_category_case_insensitively(client
         creator = _create_user("search-user")
         _create_tool("Revenue Forecaster", creator, category_name="Analytics")
         _create_tool("Alert Hub", creator, category_name="Compliance")
+
+    login_response = _login(client, "search-user")
+    assert login_response.status_code == 200
 
     name_response = client.get('/?q=foreCASTER')
     category_response = client.get('/?q=compliance')
@@ -92,6 +106,9 @@ def test_directory_load_more_shows_next_page(client, app):
         for index in range(1, 23):
             _create_tool(f"Paged Tool {index:02d}", creator)
 
+    login_response = _login(client, "paging-user")
+    assert login_response.status_code == 200
+
     response = client.get("/?page=2")
 
     assert response.status_code == 200
@@ -107,6 +124,9 @@ def test_tool_detail_page_shows_metadata_and_data_link(client, app):
         creator = _create_user("detail-user")
         tool = _create_tool("Insight Console", creator, category_name="Monitoring")
         tool_id = tool.id
+
+    login_response = _login(client, "detail-user")
+    assert login_response.status_code == 200
 
     response = client.get(f"/tools/{tool_id}")
 

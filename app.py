@@ -15,11 +15,16 @@ import os
 from pathlib import Path
 
 from flask import Flask, render_template
+from dotenv import load_dotenv
 
 from models import db
 from routes.admin import admin_bp
 from routes.auth import auth_bp, login_manager
 from routes.main import main_bp
+
+
+# Ensure local .env values are available to both Flask CLI and seed scripts.
+load_dotenv()
 
 
 def _normalise_database_url(database_url: str | None) -> str | None:
@@ -80,6 +85,15 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     db.init_app(flask_app)
     login_manager.init_app(flask_app)
+
+    auto_create_schema = flask_app.config.get("AUTO_CREATE_SCHEMA")
+    if auto_create_schema is None:
+        auto_create_schema = not flask_app.config.get("TESTING", False)
+
+    if auto_create_schema:
+        with flask_app.app_context():
+            # Create missing tables on startup without touching existing data.
+            db.create_all()
 
     flask_app.register_blueprint(main_bp)
     flask_app.register_blueprint(auth_bp)

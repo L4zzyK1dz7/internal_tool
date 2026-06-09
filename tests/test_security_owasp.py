@@ -108,6 +108,9 @@ def test_search_rejects_sql_injection_payload_without_exposing_records(client, a
         _create_tool("Revenue Forecaster", creator, category_name="Analytics")
         _create_tool("Compliance Lens", creator, category_name="Compliance")
 
+    login_response = _login(client, "search-owner", USER_PASSWORD)
+    assert login_response.status_code == 200
+
     response = client.get(f"/?q={SQL_INJECTION_PAYLOAD}")
 
     assert response.status_code == 200

@@ -12,6 +12,7 @@ WTForms>=3.1.0
 
 # --- Authentication & Security ---
 Flask-Login>=0.6.3
+python-dotenv>=1.0.1
 
 # --- Database Drivers ---
 # (PostgreSQL adapter for CI/CD; SQLite is built into Python)

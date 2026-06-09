@@ -1,6 +1,6 @@
-"""routes/main.py — Public-facing directory routes.
+"""routes/main.py — Authenticated directory routes.
 
-Provides the read-only routes accessible to all users (authenticated or not):
+Provides the read-only routes accessible to authenticated users:
 
 - ``/``            — Paginated tool directory with optional search.
 - ``/tools/<id>``  — Detail view for a single tool.
@@ -13,6 +13,7 @@ be shown without an expensive ``COUNT`` query.
 """
 
 from flask import Blueprint, abort, render_template, request
+from flask_login import login_required
 from sqlalchemy import or_, select
 from sqlalchemy.orm import joinedload
 
@@ -106,6 +107,7 @@ def _fetch_directory_page(search_term: str | None, page: int) -> tuple[list[Tool
 
 
 @main_bp.get("/")
+@login_required
 def index():
     """Render the public tool directory with search and pagination.
 
@@ -133,6 +135,7 @@ def index():
 
 
 @main_bp.get("/tools/<int:tool_id>")
+@login_required
 def tool_detail(tool_id: int):
     """Render the detail page for a single active tool.
 
