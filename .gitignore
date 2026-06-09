@@ -45,3 +45,6 @@ instance/
 .idea/
 .DS_Store
 Thumbs.db
+
+
+.archive/

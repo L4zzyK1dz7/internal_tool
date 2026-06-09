@@ -14,7 +14,10 @@ All database mutations use SQLAlchemy 2.0 ORM calls — no raw SQL is
 permitted anywhere in this module (OWASP #A1: Injection defence).
 """
 
+import logging
+
 from flask import Blueprint, flash, redirect, render_template, url_for
+from flask_login import current_user
 from sqlalchemy import select
 
 from forms import ToolForm
@@ -23,6 +26,7 @@ from routes.auth import admin_required
 
 
 admin_bp = Blueprint("admin", __name__)
+audit_logger = logging.getLogger("audit")
 
 
 def _tool_statement():
@@ -145,6 +149,14 @@ def add_tool():
         tool = _assign_tool_fields(Tool(is_active=True), form)
         db.session.add(tool)
         db.session.commit()
+        audit_logger.info(
+            "AUDIT action=tool_create actor=%s actor_id=%s target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
+            current_user.username,
+            current_user.id,
+            tool.id,
+            tool.name,
+            "/admin/add",
+        )
         flash("Tool created successfully.", "success")
         return redirect(url_for("admin.dashboard"))
 
@@ -170,8 +182,18 @@ def edit_tool(tool_id: int):
     tool = _get_tool_or_404(tool_id)
     form = _populate_tool_form_choices(ToolForm(obj=tool))
     if form.validate_on_submit():
+        previous_name = tool.name
         _assign_tool_fields(tool, form)
         db.session.commit()
+        audit_logger.info(
+            "AUDIT action=tool_edit actor=%s actor_id=%s target_tool_id=%s previous_tool_name=%s new_tool_name=%s route=%s method=POST outcome=success",
+            current_user.username,
+            current_user.id,
+            tool.id,
+            previous_name,
+            tool.name,
+            f"/admin/edit/{tool.id}",
+        )
         flash("Tool updated successfully.", "success")
         return redirect(url_for("admin.dashboard"))
 
@@ -197,5 +219,13 @@ def delete_tool(tool_id: int):
     tool = _get_tool_or_404(tool_id)
     tool.is_active = False
     db.session.commit()
+    audit_logger.info(
+        "AUDIT action=tool_archive actor=%s actor_id=%s target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
+        current_user.username,
+        current_user.id,
+        tool.id,
+        tool.name,
+        f"/admin/delete/{tool.id}",
+    )
     flash("Tool archived successfully.", "success")
     return redirect(url_for("admin.dashboard"))

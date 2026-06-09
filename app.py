@@ -12,7 +12,11 @@ Environment variables:
 """
 
 import os
+import json
+import logging
 from pathlib import Path
+from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, render_template
 from dotenv import load_dotenv
@@ -25,6 +29,67 @@ from routes.main import main_bp
 
 # Ensure local .env values are available to both Flask CLI and seed scripts.
 load_dotenv()
+
+
+def _configure_logging(flask_app: Flask) -> None:
+    """Configure rotating file loggers for app, security, and audit trails.
+
+    File logging is enabled by default outside tests and writes to
+    ``instance/logs`` so local runs preserve evidence for OWASP A10.
+
+    Args:
+        flask_app: The Flask app instance being configured.
+    """
+    if flask_app.config.get("TESTING", False):
+        return
+
+    logs_dir = Path(flask_app.instance_path) / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+
+    class JsonFormatter(logging.Formatter):
+        """Format log records as single-line JSON objects (JSONL)."""
+
+        def format(self, record: logging.LogRecord) -> str:
+            payload = {
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": record.getMessage(),
+                "module": record.module,
+            }
+            return json.dumps(payload, ensure_ascii=True)
+
+    formatter = JsonFormatter()
+
+    def _build_handler(filename: str) -> RotatingFileHandler:
+        handler = RotatingFileHandler(
+            logs_dir / filename,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=10,
+            encoding="utf-8",
+        )
+        handler.setFormatter(formatter)
+        return handler
+
+    logger_specs = {
+        "app": "app.jsonl",
+        "security": "security.jsonl",
+        "audit": "audit.jsonl",
+    }
+
+    for logger_name, filename in logger_specs.items():
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+
+        if not any(
+            isinstance(handler, RotatingFileHandler)
+            and Path(getattr(handler, "baseFilename", "")).name == filename
+            for handler in logger.handlers
+        ):
+            logger.addHandler(_build_handler(filename))
+
+    logging.getLogger("app").info("Application startup logging initialized")
 
 
 def _normalise_database_url(database_url: str | None) -> str | None:
@@ -85,6 +150,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     db.init_app(flask_app)
     login_manager.init_app(flask_app)
+    _configure_logging(flask_app)
 
     auto_create_schema = flask_app.config.get("AUTO_CREATE_SCHEMA")
     if auto_create_schema is None:
@@ -131,7 +197,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         ), 403
 
     @flask_app.errorhandler(404)
-    def not_found(error):
+    def not_found(_error):
         """Render a friendly 404 page."""
         return render_template("errors/404.html"), 404
 

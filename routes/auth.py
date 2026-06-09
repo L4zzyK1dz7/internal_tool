@@ -46,7 +46,7 @@ def load_user(user_id: str) -> User | None:
 
 
 ViewFunction = TypeVar("ViewFunction", bound=Callable[..., object])
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("security")
 
 
 def admin_required(view: ViewFunction) -> ViewFunction:
@@ -110,6 +110,12 @@ def login():
                 return redirect(next_url)
             return redirect(url_for("main.index"))
 
+        logger.warning(
+            "Security Alert: Failed login attempt for username=%s path=%s ip=%s",
+            form.username.data,
+            request.path,
+            request.remote_addr,
+        )
         flash("Invalid username or password.", "error")
 
     return render_template("auth/login.html", form=form)
