@@ -124,8 +124,8 @@ def dashboard():
     """Render the admin dashboard listing all active tools.
 
     Returns:
-        The rendered ``admin/index.html`` template populated with all
-        active :class:`~models.Tool` records ordered by name.
+        The rendered ``admin/index.html`` 
+        template with all active tools passed as context.
     """
     tools = db.session.scalars(_tool_statement()).all()
     return render_template("admin/index.html", tools=tools)
@@ -135,10 +135,6 @@ def dashboard():
 @admin_required
 def add_tool():
     """Render and process the add-tool form.
-
-    On GET, displays an empty :class:`~forms.ToolForm`.  On POST, validates
-    the submission, creates a new active :class:`~models.Tool` record, and
-    redirects to the admin dashboard on success.
 
     Returns:
         A redirect to ``admin.dashboard`` on success, or the rendered form
@@ -150,7 +146,8 @@ def add_tool():
         db.session.add(tool)
         db.session.commit()
         audit_logger.info(
-            "AUDIT action=tool_create actor=%s actor_id=%s target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
+            "AUDIT action=tool_create actor=%s actor_id=%s " \
+            "target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
             current_user.username,
             current_user.id,
             tool.id,
@@ -168,9 +165,6 @@ def add_tool():
 def edit_tool(tool_id: int):
     """Render and process the edit-tool form for an existing tool.
 
-    On GET, pre-populates the form with the current tool data.  On POST,
-    validates the submission and persists the changes.
-
     Args:
         tool_id: The primary key of the tool to edit.
 
@@ -186,7 +180,8 @@ def edit_tool(tool_id: int):
         _assign_tool_fields(tool, form)
         db.session.commit()
         audit_logger.info(
-            "AUDIT action=tool_edit actor=%s actor_id=%s target_tool_id=%s previous_tool_name=%s new_tool_name=%s route=%s method=POST outcome=success",
+            "AUDIT action=tool_edit actor=%s actor_id=%s target_tool_id=%s " \
+            "previous_tool_name=%s new_tool_name=%s route=%s method=POST outcome=success",
             current_user.username,
             current_user.id,
             tool.id,
@@ -205,10 +200,6 @@ def edit_tool(tool_id: int):
 def delete_tool(tool_id: int):
     """Soft-delete a tool by setting its ``is_active`` flag to ``False``.
 
-    The record is retained in the database for audit purposes but is
-    excluded from all active-tool queries.  This fulfils the PRD's
-    soft-delete requirement to prevent accidental data loss.
-
     Args:
         tool_id: The primary key of the tool to archive.
 
@@ -220,7 +211,8 @@ def delete_tool(tool_id: int):
     tool.is_active = False
     db.session.commit()
     audit_logger.info(
-        "AUDIT action=tool_archive actor=%s actor_id=%s target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
+        "AUDIT action=tool_archive actor=%s actor_id=%s " \
+        "target_tool_id=%s target_tool_name=%s route=%s method=POST outcome=success",
         current_user.username,
         current_user.id,
         tool.id,

@@ -49,11 +49,6 @@ def _coerce_page(value: str | None) -> int:
 def _build_directory_statement(search_term: str | None):
     """Build a SELECT statement for active tools with optional search filtering.
 
-    Eagerly loads the ``creator → team``, ``category``, and ``language``
-    relationships in a single query to avoid N+1 issues when rendering the
-    tool cards.  When ``search_term`` is provided, adds a case-insensitive
-    ``ILIKE`` filter across tool name and category name.
-
     Args:
         search_term: A plain string to match against tool name and category
             name using ``ILIKE``, or ``None`` to return all active tools.

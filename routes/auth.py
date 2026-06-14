@@ -52,11 +52,6 @@ logger = logging.getLogger("security")
 def admin_required(view: ViewFunction) -> ViewFunction:
     """Decorator that restricts a route to authenticated admin users.
 
-    If the current user is not authenticated or does not hold the
-    ``"admin"`` role, the request is blocked with a 403 abort and a
-    ``WARNING``-level log entry is emitted citing the username and path
-    (OWASP #A5: Broken Access Control defence).
-
     Args:
         view: The Flask view function to protect.
 
@@ -67,7 +62,8 @@ def admin_required(view: ViewFunction) -> ViewFunction:
     def wrapped_view(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
             logger.warning(
-                "Security Alert: Broken Access Control - blocked admin route access for user=%s path=%s",
+                "Security Alert: Broken Access Control "\
+                    "- blocked admin route access for user=%s path=%s",
                 getattr(current_user, "username", "anonymous"),
                 request.path,
             )

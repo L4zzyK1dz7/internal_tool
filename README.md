@@ -169,10 +169,5 @@ Reference docs:
 
 - `PROJECT_CONTEXT.md` — Product Requirements Document
 - `docs/tdd.md` — Technical Design Document
-- `.github/copilot-instructions.md` — Engineering and security directives
 
-## Planned Next Slices
-
-- **Slice 4:** user-facing tool discovery/search with backend limits
-- **Slice 5:** CI/CD pipeline and deployment automation
 
